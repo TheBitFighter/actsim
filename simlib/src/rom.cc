@@ -24,7 +24,7 @@
 #include <common/misc.h>
 #include <stdio.h>
 
-#include "../../actsim_ext.h"
+#include "actsim_ext.h"
 
 L_A_DECL(FILE*, rom_fp);
 

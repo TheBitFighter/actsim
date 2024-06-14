@@ -1578,7 +1578,7 @@ struct LispCliCommand Cmds[] = {
   { "chcount", "<name> [#f] - return the number of completed actions on named channel", process_chcount },
 
   { "watch", "<n1> <n2> ... - add watchpoint for <n1> etc.", process_watch },
-  { "watch_proc", "<p1> <p2> ... - add watchpoint for <p1> and all associated signals", process_watch_proc }
+  { "watch_proc", "<p1> <p2> ... - add watchpoint for <p1> and all associated signals", process_watch_proc },
   { "unwatch", "<n1> <n2> ... - delete watchpoint for <n1> etc.", process_unwatch },
   { "breakpt", "<n> - toggle breakpoint for <n>", process_breakpt },
   { "break", "<n> - toggle breakpoint for <n>", process_breakpt },

@@ -23,7 +23,7 @@
 #include <common/array.h>
 #include <stdio.h>
 
-#include "../../actsim_ext.h"
+#include "actsim_ext.h"
 
 /* use local copy from glibc for platform-independent generation */
 extern "C" int local_rand_r(unsigned int* seed);

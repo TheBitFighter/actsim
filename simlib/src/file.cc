@@ -35,7 +35,7 @@
 #include <string>
 #include <unordered_map>
 
-#include "../../actsim_ext.h"
+#include "actsim_ext.h"
 
 std::unordered_map<size_t, std::pair<std::ifstream, size_t>> input_streams;
 std::unordered_map<size_t, std::pair<std::ofstream, size_t>> output_streams;
