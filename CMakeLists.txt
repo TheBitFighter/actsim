@@ -158,16 +158,14 @@ install(
 )
 
 install(
-    DIRECTORY simlib/act
+    DIRECTORY simlib/act/
     DESTINATION ${ACTRES_PATH}/
     COMPONENT SIMLIB
 )
 
 # FLI headers
 install(
-    DIRECTORY simlib/
+    FILES "simlib/actsim_ext.h"
     DESTINATION ${HEADER_PATH}/
     COMPONENT FLI
-    FILES_MATCHING
-    PATTERN "actsim_ext.h"
 )
