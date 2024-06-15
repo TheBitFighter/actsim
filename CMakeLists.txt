@@ -13,7 +13,7 @@
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
 #
-# You should have received a copy of the GNU General Public License
+# You should have received a copy SIMLIB_FINAL_INSTALL_LOCATIONof the GNU General Public License
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor,
 # Boston, MA  02110-1301, USA.
@@ -24,6 +24,11 @@ cmake_minimum_required(VERSION 3.15)
 project(actsim)
 set(SIMLIB_NAME "actsimext_sh")
 
+message("Building project ${PROJECT_NAME} and SIMLIB lib${SIMLIB_NAME}.so")
+
+# enable debug prints
+set(DEBUG_CMAKE FALSE CACHE BOOL "enable / disable CMake configuration debug information")
+
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g")
 
@@ -31,39 +36,171 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g")
 set(CMAKE_BINARY_DIR ${CMAKE_SOURCE_DIR}/build)
 
 # if you don't want to build the tracelib together with actsim, set this to false
-set(BUILD_TRACELIB FALSE)
+set(BUILD_TRACELIB FALSE CACHE BOOL "enable / disable building tracelib with this project")
+message("Build tracelib: ${BUILD_TRACELIB}")
+
+# Build and install based on the ACT_HOME environment variable. Setting this to false
+# will assume an OS standard installation scheme (including dependencies).
+set(TARGET_ACT_HOME TRUE CACHE BOOL "if true, targets the ACT folder layout; target system standard folder layout otherwise")
+message("Build for ACT folder structure: ${TARGET_ACT_HOME}")
+
+if(DEFINED ENV{ACT_HOME})
+    message("ACT_HOME is defined and points to $ENV{ACT_HOME}")
+else(DEFINED ENV{ACT_HOME})
+    message("ACT_HOME is not defined.")
+
+    # if we want to build for the ACT_HOME folder structure, this is an issue
+    if(TARGET_ACT_HOME)
+        message(FATAL_ERROR "Instructed to build for ACT_HOME but ACT_HOME is not defined! Export your ACT_HOME location and try again.")
+    endif(TARGET_ACT_HOME)
+endif(DEFINED ENV{ACT_HOME})
 
 # installation directory
-if(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
+if(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT AND TARGET_ACT_HOME)
     set(CMAKE_INSTALL_PREFIX $ENV{ACT_HOME} CACHE PATH "installation path" FORCE)
-endif(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
+endif(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT AND TARGET_ACT_HOME)
+message("Installing to ${CMAKE_INSTALL_PREFIX}")
 
 # installation destination for sub-components
-set(BIN_PATH "bin")
-set(LIB_PATH "lib")
-set(HEADER_PATH "include/actsim")
-set(CONF_PATH "conf/generic")
-set(ACTRES_PATH "act/sim")
+set(BIN_PATH "bin" CACHE PATH "sub-path for binaries")
+set(LIB_PATH "lib" CACHE PATH "sub-path for libraries")
+set(HEADER_PATH "include/actsim" CACHE PATH "sub-path for header files")
+set(ACTRES_PATH "act/sim" CACHE PATH "sub-path for ACT resources")
 
-# set up library locations
+# if we're on unix like we want the config in /etc
+# if this is windows, just shove it into the program folder
+if((TARGET_ACT_HOME) OR (CMAKE_SYSTEM_NAME STREQUAL "Windows"))
+    set(CONF_PATH "conf/generic" CACHE PATH "sub-path for configuration files")
+else((TARGET_ACT_HOME) OR (CMAKE_SYSTEM_NAME STREQUAL "Windows"))
+    set(CONF_PATH "/etc/actsim" CACHE PATH "sub-path for configuration files")
+endif((TARGET_ACT_HOME) OR (CMAKE_SYSTEM_NAME STREQUAL "Windows"))
+
+# The final installation location for the simulation library is generated automatically
+# on the assumption that the generated library is not moved after calling `make install`.
+# Should you try to package this software, you want to override this.
+if(TARGET_ACT_HOME)
+    set(
+        SIMLIB_FINAL_INSTALL_LOCATION 
+        "\${ACT_HOME}/${LIB_PATH}/lib${SIMLIB_NAME}.so"
+        CACHE 
+        PATH 
+        "final location of C++ component of simlib"
+    )
+else(TARGET_ACT_HOME)
+    set(
+        SIMLIB_FINAL_INSTALL_LOCATION 
+        "${CMAKE_INSTALL_PREFIX}/${LIB_PATH}/lib${SIMLIB_NAME}.so"
+        CACHE 
+        PATH 
+        "final location of C++ component of simlib"
+    )
+endif(TARGET_ACT_HOME)
+
+if(DEBUG_CMAKE)
+    message("Searching for libraries at system paths ${CMAKE_LIBRARY_PATH}")
+endif(DEBUG_CMAKE)
+
+# set up library locations and headers
 # this can be overriden by command line arguments for different installation layout
-set(LIB_LOCATIONPREFIX $ENV{ACT_HOME}/lib)
-set(ACTBASELIB_LOCATION ${LIB_LOCATIONPREFIX}/libact_sh.so)
-set(ACTCOMMONLIB_LOCATION ${LIB_LOCATIONPREFIX}/libvlsilib_sh.so)
-set(ACTPASSLIB_LOCATION ${LIB_LOCATIONPREFIX}/libactpass_sh.so)
-set(ACTASIMLIB_LOCATION ${LIB_LOCATIONPREFIX}/libasim.a)
-set(ACTSCMLIB_LOCATION ${LIB_LOCATIONPREFIX}/libactscm.a)
-set(ACTSCMCLILIB_LOCATION ${LIB_LOCATIONPREFIX}/libactscmcli.a)
-set(TRACELIB_LOCATION ${LIB_LOCATIONPREFIX}/libtracelib.a)
+if(DEFINED ENV{ACT_HOME})
+
+    set(LIB_LOCATIONPREFIX $ENV{ACT_HOME}/lib)
+
+    find_library(
+        ACTBASELIB_LOCATION 
+        NAMES "libact_sh" "act_sh" 
+        HINTS ${LIB_LOCATIONPREFIX}/ 
+        REQUIRED
+    )
+    find_library(
+        ACTCOMMONLIB_LOCATION 
+        NAMES "libvlsilib_sh" "vlsilib_sh" 
+        HINTS ${LIB_LOCATIONPREFIX}/ 
+        REQUIRED
+    )
+    find_library(
+        ACTPASSLIB_LOCATION 
+        NAMES "libactpass_sh" "actpass_sh" 
+        HINTS ${LIB_LOCATIONPREFIX}/ 
+        REQUIRED
+    )
+    find_library(
+        ACTASIMLIB_LOCATION 
+        NAMES "libasim" "asim" 
+        HINTS ${LIB_LOCATIONPREFIX}/ 
+        REQUIRED
+    )
+    find_library(
+        ACTSCMLIB_LOCATION 
+        NAMES "libactscm" "actscm" 
+        HINTS ${LIB_LOCATIONPREFIX}/ 
+        REQUIRED
+    )
+    find_library(
+        ACTSCMCLILIB_LOCATION 
+        NAMES "libactscmcli" "actscmcli" 
+        HINTS ${LIB_LOCATIONPREFIX}/ 
+        REQUIRED
+    )
+    find_library(
+        TRACELIB_LOCATION 
+        NAMES "libtracelib" "tracelib" 
+        HINTS ${LIB_LOCATIONPREFIX}/ 
+        REQUIRED
+    )
+
+else(DEFINED ENV{ACT_HOME})
+
+    find_library(
+        ACTBASELIB_LOCATION 
+        NAMES "libact_sh" "libact_sh"
+        REQUIRED
+    )
+    find_library(
+        ACTCOMMONLIB_LOCATION 
+        NAMES "libvlsilib_sh" "libvlsilib_sh"
+        REQUIRED
+    )
+    find_library(
+        ACTPASSLIB_LOCATION 
+        NAMES "libactpass_sh" "libactpass_sh"
+        REQUIRED
+    )
+    find_library(
+        ACTASIMLIB_LOCATION 
+        NAMES "libasim" "libasim"
+        REQUIRED
+    )
+    find_library(
+        ACTSCMLIB_LOCATION 
+        NAMES "libactscm" "libactscm"
+        REQUIRED
+    )
+    find_library(
+        ACTSCMCLILIB_LOCATION 
+        NAMES "libactscmcli" "libactscmcli"
+        REQUIRED
+    )
+    find_library(
+        TRACELIB_LOCATION 
+        NAMES "libtracelib" "libtracelib"
+        REQUIRED
+    )
+
+endif(DEFINED ENV{ACT_HOME})
 
 # ACT library header location
-set(ACTHEADERS_LOCATION $ENV{ACT_HOME}/include/)
+if(DEFINED ENV{ACT_HOME})
+    set(ACTHEADERS_LOCATION $ENV{ACT_HOME}/include/ CACHE PATH "import location for ACT library headers")
+else(DEFINED ENV{ACT_HOME})
+    # we want to search for everything in the act folder
+    set(ACTHEADERS_LOCATION ${CMAKE_SYSTEM_INCLUDE_PATH} CACHE PATH "import location for ACT library headers")
+    list(TRANSFORM ${ACTHEADERS_LOCATION} APPEND "act/")
+endif(DEFINED ENV{ACT_HOME})
 
 # look for XYCE in the most probable locations
 find_library(XYCELIB_LOCATION "libxyce.a"
     $ENV{ACT_HOME}/lib
-    "/usr/lib"
-    "/usr/local/lib"
 )
 
 # compiler options
@@ -158,7 +295,7 @@ install(
 )
 
 install(
-    FILES "simlib/actsim.conf"
+    FILES "${CMAKE_BINARY_DIR}/simlib/actsim.conf"
     DESTINATION ${CONF_PATH}/
     COMPONENT SIMLIB
 )
@@ -175,3 +312,34 @@ install(
     DESTINATION ${HEADER_PATH}/
     COMPONENT FLI
 )
+
+# debug prints
+if(DEBUG_CMAKE)
+    message("")
+    message("Debug information:")
+    message("Full binary installation path is ${CMAKE_INSTALL_PREFIX}/${BIN_PATH}")
+    message("Full library installation path is ${CMAKE_INSTALL_PREFIX}/${LIB_PATH}")
+    message("Full header installation path is ${CMAKE_INSTALL_PREFIX}/${HEADER_PATH}")
+    message("Full ACT ressources installation path is ${CMAKE_INSTALL_PREFIX}/${ACTRES_PATH}")
+
+    if((TARGET_ACT_HOME) OR (CMAKE_SYSTEM_NAME STREQUAL "Windows"))
+        message("Full configuration installation path is ${CMAKE_INSTALL_PREFIX}/${CONF_PATH}")
+    else((TARGET_ACT_HOME) OR (CMAKE_SYSTEM_NAME STREQUAL "Windows"))
+        message("Full configuration installation path is ${CONF_PATH}")
+    endif((TARGET_ACT_HOME) OR (CMAKE_SYSTEM_NAME STREQUAL "Windows"))
+
+    message("ACTBASELIB_LOCATION is ${ACTBASELIB_LOCATION}")
+    message("ACTCOMMONLIB_LOCATION is ${ACTCOMMONLIB_LOCATION}")
+    message("ACTPASSLIB_LOCATION is ${ACTPASSLIB_LOCATION}")
+    message("ACTASIMLIB_LOCATION is ${ACTASIMLIB_LOCATION}")
+    message("ACTSCMLIB_LOCATION is ${ACTSCMLIB_LOCATION}")
+    message("ACTSCMCLILIB_LOCATION is ${ACTSCMCLILIB_LOCATION}")
+    message("TRACELIB_LOCATION is ${TRACELIB_LOCATION}")
+
+    if(LINK_XYCE)
+        message("XYCELIB_LOCATION is ${XYCELIB_LOCATION}")
+    endif(LINK_XYCE)
+
+    message("ACT library headers are imported from ${ACTHEADERS_LOCATION}")
+    message("Final destination for simlib according to config: ${SIMLIB_FINAL_INSTALL_LOCATION}")
+endif(DEBUG_CMAKE)
