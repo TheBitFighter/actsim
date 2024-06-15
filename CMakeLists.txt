@@ -27,6 +27,9 @@ set(SIMLIB_NAME "actsimext_sh")
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g")
 
+# always build into build/
+set(CMAKE_BINARY_DIR ${CMAKE_SOURCE_DIR}/build)
+
 # if you don't want to build the tracelib together with actsim, set this to false
 set(BUILD_TRACELIB FALSE)
 
