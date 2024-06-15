@@ -1,4 +1,4 @@
-include_directories($ENV{ACT_HOME}/include)
+include_directories(${ACTHEADERS_LOCATION})
 include_directories(./)
 include_directories(../)
 include_directories(../simlib)

@@ -56,6 +56,9 @@ set(ACTSCMLIB_LOCATION ${LIB_LOCATIONPREFIX}/libactscm.a)
 set(ACTSCMCLILIB_LOCATION ${LIB_LOCATIONPREFIX}/libactscmcli.a)
 set(TRACELIB_LOCATION ${LIB_LOCATIONPREFIX}/libtracelib.a)
 
+# ACT library header location
+set(ACTHEADERS_LOCATION $ENV{ACT_HOME}/include/)
+
 # look for XYCE in the most probable locations
 find_library(XYCELIB_LOCATION "libxyce.a"
     $ENV{ACT_HOME}/lib
