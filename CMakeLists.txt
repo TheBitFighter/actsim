@@ -53,7 +53,7 @@ set(ACTSCMLIB_LOCATION ${LIB_LOCATIONPREFIX}/libactscm.a)
 set(ACTSCMCLILIB_LOCATION ${LIB_LOCATIONPREFIX}/libactscmcli.a)
 set(TRACELIB_LOCATION ${LIB_LOCATIONPREFIX}/libtracelib.a)
 
-# look in the most probably locations for XYCE
+# look for XYCE in the most probable locations
 find_library(XYCELIB_LOCATION "libxyce.a"
     $ENV{ACT_HOME}/lib
     "/usr/lib"
