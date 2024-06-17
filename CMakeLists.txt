@@ -22,7 +22,7 @@
 cmake_minimum_required(VERSION 3.15)
 
 project(actsim)
-set(SIMLIB_NAME "actsimext_sh")
+set(SIMLIB_NAME "actsimext_sh" CACHE STRING "simlib C component library name")
 
 message("Building project ${PROJECT_NAME} and SIMLIB lib${SIMLIB_NAME}.so")
 
@@ -153,37 +153,37 @@ else(DEFINED ENV{ACT_HOME})
 
     find_library(
         ACTBASELIB_LOCATION 
-        NAMES "libact_sh" "libact_sh"
+        NAMES "libact_sh" "act_sh"
         REQUIRED
     )
     find_library(
         ACTCOMMONLIB_LOCATION 
-        NAMES "libvlsilib_sh" "libvlsilib_sh"
+        NAMES "libvlsilib_sh" "vlsilib_sh"
         REQUIRED
     )
     find_library(
         ACTPASSLIB_LOCATION 
-        NAMES "libactpass_sh" "libactpass_sh"
+        NAMES "libactpass_sh" "actpass_sh"
         REQUIRED
     )
     find_library(
         ACTASIMLIB_LOCATION 
-        NAMES "libasim" "libasim"
+        NAMES "libasim" "asim"
         REQUIRED
     )
     find_library(
         ACTSCMLIB_LOCATION 
-        NAMES "libactscm" "libactscm"
+        NAMES "libactscm" "actscm"
         REQUIRED
     )
     find_library(
         ACTSCMCLILIB_LOCATION 
-        NAMES "libactscmcli" "libactscmcli"
+        NAMES "libactscmcli" "actscmcli"
         REQUIRED
     )
     find_library(
         TRACELIB_LOCATION 
-        NAMES "libtracelib" "libtracelib"
+        NAMES "libtracelib" "tracelib"
         REQUIRED
     )
 
@@ -199,8 +199,10 @@ else(DEFINED ENV{ACT_HOME})
 endif(DEFINED ENV{ACT_HOME})
 
 # look for XYCE in the most probable locations
-find_library(XYCELIB_LOCATION "libxyce.a"
-    $ENV{ACT_HOME}/lib
+find_library(
+    XYCELIB_LOCATION 
+    NAMES "libxyce" "xyce" 
+    HINTS $ENV{ACT_HOME}/lib
 )
 
 # compiler options
